@@ -4,8 +4,12 @@ import base64
 import numpy as np
 import io
 from makeup_app import MakeupApplication  # Import your class
+from flask_cors import CORS
+
+
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 makeup_app = MakeupApplication()
 
 def process_image(image_data):
