@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Makeup</title>
+    <style>
+        video, canvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Virtual Makeup Application</h1>
+    <video id="webcam" autoplay playsinline width="640" height="480"></video>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    <img id="output" width="640" height="480" />
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const output = document.getElementById('output');
+
+        // Get access to the user's webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            video.srcObject = stream;
+        })
+        .catch(function(error) {
+            console.error("Error accessing webcam: ", error);
+        });
+
+        // Capture frame and send to server every 100ms
+        setInterval(() => {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frameData = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
+
+            // Send the frame to the Flask server for processing
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: frameData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Set the processed image in the <img> tag
+                output.src = 'data:image/jpeg;base64,' + data.processed_image;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 100);  // Adjust the interval as necessary
+    </script>
+</body>
+</html>
