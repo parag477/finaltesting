@@ -35,6 +35,7 @@ def process_image(image_data):
 def index():
     return render_template('index.html')
 
+
 @app.route('/process', methods=['POST'])
 # def process():
 #     data = request.json
@@ -44,33 +45,20 @@ def index():
 
 def process():
     try:
-        data = request.get_json()  # Safely access the incoming JSON data
-        image_data = data.get('image')
-
-        if not image_data:
+        data = request.get_json()
+        
+        if not data or 'image' not in data:
             return jsonify({'error': 'No image data provided'}), 400
-
+        
+        image_data = data['image']
         processed_image = process_image(image_data)
-
-        if processed_image:
-            # Manually create the JSON response with the processed image
-            response_data = {'processed_image': processed_image}
-            return Response(
-                response=json.dumps(response_data),
-                status=200,
-                mimetype='application/json'
-            )
-        else:
-            return jsonify({'error': 'Image processing failed'}), 500
+        
+        return jsonify({'processed_image': processed_image}), 200
 
     except Exception as e:
         print(f"Error processing image: {e}")
-        error_response = {'error': 'Failed to process image'}
-        return Response(
-            response=json.dumps(error_response),
-            status=500,
-            mimetype='application/json'
-        )
+        return jsonify({'error': 'Failed to process image', 'details': str(e)}), 500
+
 
 if __name__ == "__main__":
     # Use the appropriate port for deployment and localhost
