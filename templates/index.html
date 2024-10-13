@@ -38,17 +38,25 @@
             const frameData = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
 
             // Send the frame to the Flask server for processing
-            fetch('https://finaltesting-mej7.onrender.com/process', {
+            fetch('/process', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ image: frameData })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-                // Set the processed image in the <img> tag
-                output.src = 'data:image/jpeg;base64,' + data.processed_image;
+                if (data && data.processed_image) {
+                    output.src = 'data:image/jpeg;base64,' + data.processed_image;
+                } else {
+                    console.error('Error: Invalid JSON response');
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
